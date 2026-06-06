@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>short.ly — URL Shortener | CodeAlpha Task 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f2eb;--surface:#ffffff;--card:#fdfcf8;
+  --border:#e2ddd4;--border2:#c8c2b8;
+  --ink:#1a1714;--muted:#7a7268;--sub:#a09890;
+  --accent:#c9410a;--accent2:#1a6b5a;--accent3:#7c4db8;
+  --warn:#b8780a;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh}
+.header{background:var(--ink);color:#f5f2eb;padding:18px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--accent);}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:38px;height:38px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.logo-name{font-size:22px;font-weight:800;letter-spacing:-0.5px}
+.logo-sub{font-size:11px;color:#9a9288;font-family:var(--mono);letter-spacing:1px}
+.badge{font-size:10px;font-weight:600;letter-spacing:1px;padding:4px 10px;border-radius:3px;font-family:var(--mono)}
+.badge-green{background:#1a6b5a22;color:#4ecca3;border:1px solid #1a6b5a}
+.badge-amber{background:#b8780a22;color:#f0b429;border:1px solid #b8780a}
+.main{max-width:920px;margin:0 auto;padding:32px 20px}
+.api-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.api-pill{display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:5px 12px;font-family:var(--mono);font-size:11px}
+.method{font-weight:600;padding:2px 7px;border-radius:3px;font-size:10px;letter-spacing:.5px}
+.m-post{background:#c9410a18;color:var(--accent)}.m-get{background:#1a6b5a18;color:var(--accent2)}.m-delete{background:#7c4db818;color:var(--accent3)}
+.ep{color:var(--muted)}
+.hero{background:var(--surface);border:1.5px solid var(--border2);border-radius:14px;padding:28px;margin-bottom:24px;box-shadow:4px 4px 0 var(--border)}
+.form-label{font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:12px;letter-spacing:.5px}
+.input-row{display:flex;gap:10px;margin-bottom:10px}
+input,select{background:var(--bg);color:var(--ink);border:1.5px solid var(--border2);border-radius:8px;padding:12px 14px;font-size:14px;font-family:var(--sans);outline:none;transition:border-color .2s;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+.url-input{flex:1;font-size:15px}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:13px 26px;font-size:15px;font-weight:700;font-family:var(--sans);cursor:pointer;white-space:nowrap;transition:transform .15s,opacity .2s}
+.btn-primary:hover{transform:translateY(-1px)}.btn-primary:active{transform:scale(.97)}.btn-primary:disabled{opacity:.5;cursor:default;transform:none}
+.alias-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:10px}
+.btn-ghost{background:var(--bg);color:var(--muted);border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;cursor:pointer;font-family:var(--sans);white-space:nowrap;transition:border-color .2s}
+.btn-ghost:hover{border-color:var(--accent2);color:var(--accent2)}
+.err{color:var(--accent);font-size:13px;font-family:var(--mono);padding:8px 12px;background:#c9410a0d;border-radius:6px;border-left:3px solid var(--accent);margin-top:6px;display:none}
+.resp{background:var(--ink);color:#d4f5e8;border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:12px;margin-top:12px;white-space:pre-wrap;overflow-x:auto;line-height:1.8;display:none}
+.resp.show{display:block}
+.rk{color:#86efac}.rs{color:#fde68a}.rn{color:#93c5fd}
+.stats-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.stat-label{font-size:11px;color:var(--muted);letter-spacing:.5px;margin-bottom:4px;font-family:var(--mono)}
+.stat-val{font-size:30px;font-weight:800;font-family:var(--mono)}
+.c-red{color:var(--accent)}.c-green{color:var(--accent2)}.c-purple{color:var(--accent3)}
+.results-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px}
+.results-title{font-size:16px;font-weight:700}
+.results-sub{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.search{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:13px;font-family:var(--mono);color:var(--ink);outline:none;width:180px}
+.search:focus{border-color:var(--accent2)}
+.link-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;animation:slideIn .3s ease;transition:border-color .2s,box-shadow .2s}
+.link-row:hover{border-color:var(--border2);box-shadow:2px 2px 0 var(--border)}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.link-short{font-family:var(--mono);font-weight:500;color:var(--accent);font-size:14px;margin-bottom:3px;cursor:pointer}
+.link-short:hover{text-decoration:underline}
+.link-orig{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:400px}
+.link-meta{font-size:11px;color:var(--sub);font-family:var(--mono);margin-top:4px}
+.link-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.click-badge{font-size:12px;font-family:var(--mono);padding:4px 10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;white-space:nowrap}
+.btn-sm{border-radius:6px;padding:6px 11px;font-size:12px;font-family:var(--sans);font-weight:600;border:1px solid;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-copy{background:#1a6b5a11;color:var(--accent2);border-color:var(--accent2)}.btn-copy:hover,.btn-copy.done{background:var(--accent2);color:#fff}
+.btn-visit{background:transparent;color:var(--muted);border-color:var(--border)}.btn-visit:hover{border-color:var(--accent3);color:var(--accent3)}
+.btn-del{background:transparent;color:var(--sub);border-color:var(--border)}.btn-del:hover{background:#c9410a11;color:var(--accent);border-color:var(--accent)}
+.empty{text-align:center;padding:48px;color:var(--muted);font-family:var(--mono);font-size:13px}
+.empty-icon{font-size:40px;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid #fff4;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:6px}
+footer{text-align:center;padding:32px 20px;color:var(--muted);font-size:12px;font-family:var(--mono);border-top:1px solid var(--border);margin-top:40px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🔗</div>
+    <div>
+      <div class="logo-name">short.ly</div>
+      <div class="logo-sub">URL SHORTENER API</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <span class="badge badge-green">● LIVE</span>
+    <span class="badge badge-amber">CodeAlpha · Task 1</span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="api-bar">
+    <div class="api-pill"><span class="method m-post">POST</span><span class="ep">/api/shorten</span></div>
+    <div class="api-pill"><span class="method m-get">GET</span><span class="ep">/api/:code → redirect</span></div>
+    <div class="api-pill"><span class="method m-get">GET</span><span class="ep">/api/stats</span></div>
+    <div class="api-pill"><span class="method m-delete">DELETE</span><span class="ep">/api/:code</span></div>
+  </div>
+
+  <div class="hero">
+    <div class="form-label">POST /api/shorten — Generate a short URL</div>
+    <div class="input-row">
+      <input id="urlInput" class="url-input" type="url" placeholder="https://your-very-long-url.com/paste/it/here"/>
+      <button class="btn-primary" id="shortenBtn" onclick="shortenUrl()">Shorten →</button>
+    </div>
+    <div class="alias-row">
+      <input id="aliasInput" placeholder="Custom alias (optional)" style="font-family:var(--mono);font-size:13px"/>
+      <input id="expiryInput" type="date" title="Expiry date"/>
+      <button class="btn-ghost" onclick="genAlias()">🎲 Random</button>
+    </div>
+    <div id="errMsg" class="err"></div>
+    <div id="respPanel" class="resp"></div>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat"><div class="stat-label">TOTAL LINKS</div><div class="stat-val c-red" id="statLinks">0</div></div>
+    <div class="stat"><div class="stat-label">TOTAL CLICKS</div><div class="stat-val c-green" id="statClicks">0</div></div>
+    <div class="stat"><div class="stat-label">ACTIVE TODAY</div><div class="stat-val c-purple" id="statActive">0</div></div>
+  </div>
+
+  <div class="results-hd">
+    <div>
+      <div class="results-title">GET /api/stats — All Links</div>
+      <div class="results-sub" id="linkCount">0 links</div>
+    </div>
+    <input class="search" id="searchBox" placeholder="🔍 search…" oninput="renderLinks()"/>
+  </div>
+  <div id="linksList"><div class="empty"><div class="empty-icon">🔗</div>No links yet. Shorten your first URL above!</div></div>
+</div>
+
+<footer>
+  Built by <strong>Krupa Jyothi Samarla</strong> · CodeAlpha Backend Internship 2026 · Task 1 — URL Shortener
+</footer>
+
+<script>
+const BASE = window.location.origin;
+const DB = {};
+let nid = 1;
+
+function uid(n=6){return Math.random().toString(36).substr(2,n).toUpperCase();}
+function isValid(u){try{new URL(u);return true;}catch{return false;}}
+function genAlias(){const w=['swift','link','tiny','snap','zap','hop','fly','zip','bolt','rush'];document.getElementById('aliasInput').value=w[Math.floor(Math.random()*w.length)]+uid(3).toLowerCase();}
+function showErr(m){const e=document.getElementById('errMsg');e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',3500);}
+function timeSince(d){const s=Math.floor((Date.now()-new Date(d))/1000);if(s<60)return s+'s';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';return Math.floor(s/86400)+'d';}
+
+function syntaxHL(str){
+  return str.replace(/"([^"]+)":/g,'<span class="rk">"$1"</span>:')
+            .replace(/: "([^"]*)"/g,': <span class="rs">"$1"</span>')
+            .replace(/: (\d+)/g,': <span class="rn">$1</span>');
+}
+function showResp(obj){
+  const p=document.getElementById('respPanel');
+  p.innerHTML=syntaxHL(JSON.stringify(obj,null,2));
+  p.classList.add('show');
+  setTimeout(()=>p.classList.remove('show'),7000);
+}
+
+function shortenUrl(){
+  let url=document.getElementById('urlInput').value.trim();
+  const alias=document.getElementById('aliasInput').value.trim().toLowerCase().replace(/\s+/g,'');
+  const expiry=document.getElementById('expiryInput').value;
+  const btn=document.getElementById('shortenBtn');
+  if(!url){showErr('⚠ Please enter a URL');return;}
+  if(!/^https?:\/\//i.test(url))url='https://'+url;
+  if(!isValid(url)){showErr('⚠ Invalid URL — example: https://google.com');return;}
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Shortening…';
+  setTimeout(()=>{
+    const code=alias||uid(6);
+    if(alias&&DB[alias]&&DB[alias].original!==url){showErr('⚠ Alias already taken');btn.disabled=false;btn.innerHTML='Shorten →';return;}
+    DB[code]={id:nid++,code,original:url,short:`${BASE}/${code}`,clicks:0,history:[],expiry:expiry||null,created:new Date().toISOString()};
+    document.getElementById('urlInput').value='';
+    document.getElementById('aliasInput').value='';
+    document.getElementById('expiryInput').value='';
+    btn.disabled=false;btn.innerHTML='Shorten →';
+    updateStats();renderLinks();
+    showResp({status:201,message:"URL shortened successfully",data:{code,short_url:DB[code].short,original_url:url,expires:expiry||null,created_at:DB[code].created}});
+  },600);
+}
+
+document.getElementById('urlInput').addEventListener('keydown',e=>{if(e.key==='Enter')shortenUrl();});
+
+function visitLink(code){
+  DB[code].clicks++;DB[code].history.push(new Date().toISOString());
+  updateStats();renderLinks();
+  showResp({status:301,message:"Redirect executed",data:{code,original_url:DB[code].original,clicks_total:DB[code].clicks}});
+  window.open(DB[code].original,'_blank');
+}
+
+function copyLink(code,btn){
+  navigator.clipboard?.writeText(DB[code].short).catch(()=>{});
+  btn.textContent='✓ Copied';btn.classList.add('done');
+  setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done');},1800);
+}
+
+function deleteLink(code){
+  showResp({status:200,message:"Link deleted",data:{code}});
+  delete DB[code];updateStats();renderLinks();
+}
+
+function updateStats(){
+  const keys=Object.keys(DB);
+  document.getElementById('statLinks').textContent=keys.length;
+  document.getElementById('statClicks').textContent=keys.reduce((s,k)=>s+DB[k].clicks,0);
+  const today=new Date().toDateString();
+  document.getElementById('statActive').textContent=keys.filter(k=>{const h=DB[k].history;return h.length&&new Date(h[h.length-1]).toDateString()===today;}).length;
+  document.getElementById('linkCount').textContent=`${keys.length} link${keys.length!==1?'s':''} stored`;
+}
+
+function renderLinks(){
+  const q=document.getElementById('searchBox').value.toLowerCase();
+  const keys=Object.keys(DB).filter(k=>!q||DB[k].original.toLowerCase().includes(q)||k.toLowerCase().includes(q)).reverse();
+  const c=document.getElementById('linksList');
+  if(!keys.length){c.innerHTML=Object.keys(DB).length?'<div class="empty"><div class="empty-icon">🔍</div>No links match your search</div>':'<div class="empty"><div class="empty-icon">🔗</div>No links yet. Shorten your first URL above!</div>';return;}
+  c.innerHTML=keys.map(code=>{
+    const l=DB[code];
+    const exp=l.expiry?`<span style="color:var(--warn);margin-left:8px">⏳ expires ${l.expiry}</span>`:'';
+    return `<div class="link-row">
+      <div style="min-width:0">
+        <div class="link-short" onclick="visitLink('${code}')">${l.short}</div>
+        <div class="link-orig" title="${l.original}">${l.original}</div>
+        <div class="link-meta">created ${timeSince(l.created)} ago · ID: ${l.id}${exp}</div>
+      </div>
+      <div class="link-actions">
+        <span class="click-badge">👆 ${l.clicks} clicks</span>
+        <button class="btn-sm btn-copy" onclick="copyLink('${code}',this)">Copy</button>
+        <button class="btn-sm btn-visit" onclick="visitLink('${code}')">Visit →</button>
+        <button class="btn-sm btn-del" onclick="deleteLink('${code}')">✕ Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
